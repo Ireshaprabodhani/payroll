@@ -63,6 +63,13 @@ async function main() {
     create: { Username: 'payroll_manager', Password: managerHash, Role: 'Payroll Manager' },
   });
 
+  const endUserHash = await bcrypt.hash('enduser123', 10);
+  await prisma.users.upsert({
+    where: { Username: 'end_user' },
+    update: { Password: endUserHash, Role: 'End User', Department: 'Finance' },
+    create: { Username: 'end_user', Password: endUserHash, Role: 'End User', Department: 'Finance' },
+  });
+
   console.log('Seed complete.');
 }
 

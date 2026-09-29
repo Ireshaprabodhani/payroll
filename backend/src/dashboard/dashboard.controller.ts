@@ -11,18 +11,18 @@ export class DashboardController {
   getSummary(@Query('payPeriod') payPeriod: string, @Request() req: any) {
     if (!payPeriod) throw new BadRequestException('payPeriod query param required');
 
-    const { role, username } = req.user as { role: string; username: string };
+    const { role, department } = req.user as { role: string; username: string; department: string | null };
 
-    // End User: can only see their own department (set a dept filter based on their profile)
-    // For now, End User gets no access to dashboard — Admin/Manager/Executive only
+    // End User: scoped to their own department stored in the JWT
     let deptFilter: string | undefined;
     if (role === 'End User') {
-      // In a real system you'd look up their department from Employee_Department_Master
-      // For now restrict to a placeholder; a proper implementation would join on username
-      throw new BadRequestException('End User dashboard access requires department context');
+      if (!department) {
+        throw new BadRequestException('End User account has no department assigned. Contact an administrator.');
+      }
+      deptFilter = department;
     }
 
-    // Executive, Admin, Payroll Manager: full organisation view
+    // Admin, Payroll Manager: full organisation view (deptFilter remains undefined)
     return this.dashboardService.getSummary(payPeriod, deptFilter);
   }
 

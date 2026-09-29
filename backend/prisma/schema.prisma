@@ -95,9 +95,10 @@ model Import_Log {
 }
 
 model Users {
-  Username String @id
-  Password String
-  Role     String
+  Username   String  @id
+  Password   String
+  Role       String
+  Department String?
 
   @@map("Users")
 }
