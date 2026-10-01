@@ -8,6 +8,7 @@ import { saveSession } from '@/lib/auth';
 interface LoginResponse {
   access_token: string;
   role: string;
+  department: string | null;
 }
 
 export default function LoginPage() {
@@ -23,7 +24,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await api.post<LoginResponse>('/auth/login', { username, password });
-      saveSession(res.access_token, res.role, username);
+      saveSession(res.access_token, res.role, username, res.department);
       router.push('/dashboard');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Login failed');
@@ -48,6 +49,7 @@ export default function LoginPage() {
               placeholder="admin"
               required
               autoComplete="username"
+              placeholder=""
             />
           </div>
           <div style={styles.field}>
@@ -67,10 +69,6 @@ export default function LoginPage() {
             {loading ? 'Signing in…' : 'Sign In'}
           </button>
         </form>
-        <p style={styles.hint}>
-          <strong>Admin:</strong> admin / admin123<br />
-          <strong>Payroll Manager:</strong> payroll_manager / payroll123
-        </p>
       </div>
     </div>
   );
@@ -145,14 +143,5 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     cursor: 'pointer',
     marginTop: 4,
-  },
-  hint: {
-    marginTop: 24,
-    padding: '12px 14px',
-    background: '#f8f9ff',
-    borderRadius: 8,
-    fontSize: 12,
-    color: '#555',
-    lineHeight: 1.8,
   },
 };

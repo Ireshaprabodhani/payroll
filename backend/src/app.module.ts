@@ -8,6 +8,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { PayrollModule } from './payroll/payroll.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RulesModule } from './rules/rules.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { RulesModule } from './rules/rules.module';
     PayrollModule,
     RulesModule,
     DashboardModule,
+    UsersModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

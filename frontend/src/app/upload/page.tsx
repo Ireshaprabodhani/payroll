@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { isAuthenticated, getRole, getUsername, clearSession } from '@/lib/auth';
+import { useRouter, usePathname } from 'next/navigation';
+import { isAuthenticated, getRole } from '@/lib/auth';
 import { api } from '@/lib/api';
+import Sidebar from '@/components/Sidebar';
+import TopHeader from '@/components/TopHeader';
 
 interface UploadResult {
   inserted: number;
@@ -22,9 +24,8 @@ interface ProcessResult {
 
 export default function UploadPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const [authorized, setAuthorized] = useState(false);
-  const [role, setRole] = useState('');
-  const [username, setUsername] = useState('');
 
   const [file, setFile] = useState<File | null>(null);
   const [importMonth, setImportMonth] = useState('');
@@ -38,8 +39,6 @@ export default function UploadPage() {
     if (!isAuthenticated()) { router.push('/login'); return; }
     const r = getRole() ?? '';
     if (!['Admin', 'Payroll Manager'].includes(r)) { router.push('/dashboard'); return; }
-    setRole(r);
-    setUsername(getUsername() ?? '');
     setAuthorized(true);
   }, [router]);
 
@@ -74,31 +73,20 @@ export default function UploadPage() {
     }
   };
 
-  const handleLogout = () => {
-    clearSession();
-    router.push('/login');
-  };
-
   if (!authorized) return null;
 
   return (
-    <div style={styles.page}>
-      {/* Header */}
-      <header style={styles.header}>
-        <h1 style={styles.headerTitle}>Payroll Dashboard</h1>
-        <div style={styles.headerRight}>
-          <span style={styles.userBadge}>{role}: {username}</span>
-          <button style={styles.navBtn} onClick={() => router.push('/dashboard')}>Dashboard</button>
-          <button style={styles.logoutBtn} onClick={handleLogout}>Logout</button>
-        </div>
-      </header>
-
-      <main style={styles.main}>
-        <h2 style={styles.pageTitle}>Upload Attendance CSV</h2>
-        <p style={styles.pageDesc}>
-          Upload a monthly attendance punch file. The system will calculate payroll,
-          run all 10 data-quality rules, and produce a report automatically.
-        </p>
+    <div style={styles.pageWrapper}>
+      <Sidebar currentPath={pathname} />
+      <div style={styles.rightColumn}>
+        <TopHeader />
+        <main style={styles.main}>
+          <div style={styles.pageHeading}>
+            <div>
+              <h1 style={styles.pageTitle}>Import Attendance</h1>
+              <p style={styles.pageSubtitle}>Upload a monthly CSV punch file to calculate payroll and run quality rules</p>
+            </div>
+          </div>
 
         <div style={styles.card}>
           <form onSubmit={handleUploadAndProcess} style={styles.form}>
@@ -190,7 +178,8 @@ export default function UploadPage() {
             </button>
           </div>
         )}
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
@@ -205,36 +194,32 @@ function StatBox({ label, value, highlight = false }: { label: string; value: st
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  page: { minHeight: '100vh', background: '#f0f2f5' },
-  header: { background: '#2c3e8a', color: '#fff', padding: '14px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
-  headerTitle: { margin: 0, fontSize: 18, fontWeight: 700 },
-  headerRight: { display: 'flex', alignItems: 'center', gap: 12 },
-  userBadge: { fontSize: 12, background: 'rgba(255,255,255,0.15)', padding: '4px 10px', borderRadius: 20 },
-  navBtn: { background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', borderRadius: 6, padding: '6px 14px', cursor: 'pointer', fontSize: 13 },
-  logoutBtn: { background: 'transparent', border: '1px solid rgba(255,255,255,0.4)', color: '#fff', borderRadius: 6, padding: '6px 14px', cursor: 'pointer', fontSize: 13 },
-  main: { maxWidth: 680, margin: '0 auto', padding: '40px 20px' },
-  pageTitle: { fontSize: 22, fontWeight: 700, color: '#1a1a2e', marginBottom: 6 },
-  pageDesc: { color: '#666', marginBottom: 24, fontSize: 14 },
-  card: { background: '#fff', borderRadius: 12, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', padding: '28px 32px', marginBottom: 0 },
-  successCard: { border: '1.5px solid #27ae60', marginTop: 16 },
+  pageWrapper: { display: 'flex', minHeight: '100vh', background: '#f1f5f9' },
+  rightColumn: { marginLeft: 260, flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 },
+  main: { flex: 1, padding: '32px 40px' },
+  pageHeading: { marginBottom: 28 },
+  pageTitle: { margin: '0 0 4px', fontSize: 26, fontWeight: 700, color: '#0f172a' },
+  pageSubtitle: { margin: 0, fontSize: 13, color: '#64748b' },
+  card: { background: '#fff', borderRadius: 12, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', padding: '28px 32px', marginBottom: 0, border: '1px solid #f1f5f9' },
+  successCard: { border: '1.5px solid #16a34a', marginTop: 16 },
   form: { display: 'flex', flexDirection: 'column', gap: 20 },
   field: { display: 'flex', flexDirection: 'column', gap: 6 },
-  label: { fontSize: 13, fontWeight: 600, color: '#444' },
-  fieldHint: { margin: '0 0 6px', fontSize: 12, color: '#888' },
-  input: { padding: '10px 14px', border: '1.5px solid #ddd', borderRadius: 8, fontSize: 14 },
+  label: { fontSize: 13, fontWeight: 600, color: '#374151' },
+  fieldHint: { margin: '0 0 6px', fontSize: 12, color: '#94a3b8' },
+  input: { padding: '10px 14px', border: '1.5px solid #e2e8f0', borderRadius: 8, fontSize: 14, outline: 'none' },
   fileInput: { padding: '8px 0', fontSize: 14 },
-  error: { margin: 0, padding: '10px 14px', background: '#fff0f0', border: '1px solid #ffcccc', borderRadius: 8, color: '#c0392b', fontSize: 13 },
-  button: { padding: '13px', background: '#2c3e8a', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 600, cursor: 'pointer' },
-  resultTitle: { margin: '0 0 14px', fontSize: 16, fontWeight: 700, color: '#1a1a2e' },
+  error: { margin: 0, padding: '10px 14px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, color: '#dc2626', fontSize: 13 },
+  button: { padding: '13px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 600, cursor: 'pointer' },
+  resultTitle: { margin: '0 0 14px', fontSize: 16, fontWeight: 700, color: '#0f172a' },
   statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 },
-  statBox: { background: '#f8f9ff', borderRadius: 10, padding: '16px', textAlign: 'center', border: '1.5px solid #e8eaf6' },
-  statBoxHighlight: { background: '#fff5f5', border: '1.5px solid #ffcccc' },
-  statValue: { fontSize: 28, fontWeight: 700, color: '#2c3e8a' },
-  statLabel: { fontSize: 12, color: '#666', marginTop: 4 },
+  statBox: { background: '#f8fafc', borderRadius: 10, padding: '16px', textAlign: 'center', border: '1px solid #f1f5f9' },
+  statBoxHighlight: { background: '#fef2f2', border: '1px solid #fecaca' },
+  statValue: { fontSize: 28, fontWeight: 700, color: '#2563eb' },
+  statLabel: { fontSize: 12, color: '#64748b', marginTop: 4 },
   flagTable: { marginBottom: 20 },
-  flagTitle: { margin: '0 0 10px', fontSize: 14, fontWeight: 600, color: '#444' },
+  flagTitle: { margin: '0 0 10px', fontSize: 14, fontWeight: 600, color: '#374151' },
   table: { width: '100%', borderCollapse: 'collapse', fontSize: 13 },
-  th: { textAlign: 'left', padding: '8px 12px', background: '#f0f2f5', color: '#555', fontWeight: 600, borderBottom: '1px solid #e0e0e0' },
-  td: { padding: '8px 12px', borderBottom: '1px solid #f0f2f5', color: '#333' },
-  navBtnPrimary: { padding: '12px 20px', background: '#2c3e8a', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' },
+  th: { textAlign: 'left', padding: '8px 12px', background: '#f8fafc', color: '#64748b', fontWeight: 600, borderBottom: '1px solid #f1f5f9' },
+  td: { padding: '8px 12px', borderBottom: '1px solid #f8fafc', color: '#374151' },
+  navBtnPrimary: { padding: '12px 20px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' },
 };

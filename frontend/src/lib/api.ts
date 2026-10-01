@@ -50,4 +50,8 @@ export const api = {
   get<T>(path: string): Promise<T> {
     return request<T>(path, { method: 'GET' });
   },
+
+  delete<T>(path: string): Promise<T> {
+    return request<T>(path, { method: 'DELETE' });
+  },
 };

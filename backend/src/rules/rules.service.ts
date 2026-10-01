@@ -118,7 +118,7 @@ export class RulesService {
     });
   }
 
-  async getDqScore(payPeriod: string): Promise<{ dqScore: number; payPeriod: string }> {
+  async getDqScore(payPeriod: string): Promise<{ dqScore: number; payPeriod: string; totalRows: number; flaggedRows: number }> {
     const extract = await this.prisma.payroll_Extract.findMany({
       where: { Pay_Period: payPeriod },
     });
@@ -128,8 +128,12 @@ export class RulesService {
         ? await this.prisma.flagged_Results.findMany({ where: { Record_ID: { in: ids } } })
         : [];
 
+    const flaggedIds = new Set(flags.map((f) => f.Record_ID));
+
     return {
       payPeriod,
+      totalRows: extract.length,
+      flaggedRows: flaggedIds.size,
       dqScore: rule9DqScore(extract, flags),
     };
   }

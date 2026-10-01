@@ -11,7 +11,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async login(dto: LoginDto): Promise<{ access_token: string; role: string }> {
+  async login(dto: LoginDto): Promise<{ access_token: string; role: string; department: string | null }> {
     const user = await this.prisma.users.findUnique({
       where: { Username: dto.username },
     });
