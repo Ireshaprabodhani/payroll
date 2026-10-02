@@ -75,7 +75,9 @@ def main():
         print("Seeding Users...")
         upsert_user(db, "admin", "admin123", "Admin")
         upsert_user(db, "payroll_manager", "payroll123", "Payroll Manager")
+        upsert_user(db, "executive", "executive123", "Executive")
         upsert_user(db, "end_user", "enduser123", "End User", "Finance")
+        upsert_user(db, "hr_user", "hr123", "End User", "HR")
 
         db.commit()
         print("Seed complete.")
