@@ -30,7 +30,8 @@ export default function DqScorePage() {
   const router = useRouter();
   const pathname = usePathname();
   const [authorized, setAuthorized] = useState(false);
-  const [payPeriod, setPayPeriod] = useState('2020-01');
+  const [payPeriod, setPayPeriod] = useState('');
+  const [focused, setFocused] = useState(false);
   const [data, setData] = useState<DqScoreResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -38,12 +39,14 @@ export default function DqScorePage() {
   useEffect(() => {
     if (!isAuthenticated()) { router.push('/login'); return; }
     setAuthorized(true);
+    api.get<{ payPeriod: string }>('/dashboard/latest-month')
+      .then((r) => setPayPeriod(r.payPeriod || '2020-01'))
+      .catch(() => setPayPeriod('2020-01'));
   }, [router]);
 
   useEffect(() => {
-    if (authorized) { load(); }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authorized]);
+    if (payPeriod) load();
+  }, [payPeriod]);
 
   const load = async () => {
     setLoading(true);
@@ -58,13 +61,11 @@ export default function DqScorePage() {
     }
   };
 
-  const handleExport = () => {
-    if (!data) return;
-    downloadCsv(
-      ['Pay Period', 'Total Rows', 'Flagged Rows', 'Clean Rows', 'DQ Score (%)'],
-      [[data.payPeriod, data.totalRows, data.flaggedRows, data.totalRows - data.flaggedRows, data.dqScore]],
-      `dq-score-${payPeriod}.csv`,
-    );
+  const handleExport = async () => {
+    const rows = await api.get<Record<string, string>[]>(`/dashboard/export?payPeriod=${payPeriod}`);
+    if (!rows.length) return;
+    const headers = Object.keys(rows[0]);
+    downloadCsv(headers, rows.map((r) => headers.map((h) => r[h] ?? '')), `payroll-anomalies-${payPeriod}.csv`);
   };
 
   const dqColor = (s: number) => s >= 90 ? '#16a34a' : s >= 70 ? '#f59e0b' : '#dc2626';
@@ -86,17 +87,10 @@ export default function DqScorePage() {
             </div>
             <div style={styles.headingActions}>
               <div style={styles.periodRow}>
-                <input style={styles.periodInput} type="text" value={payPeriod} onChange={(e) => setPayPeriod(e.target.value)} placeholder="YYYY-MM" />
-                <button style={styles.loadBtn} onClick={load} disabled={loading}>{loading ? 'Loading…' : 'Load Score'}</button>
+                <input style={styles.periodInput} type="text" value={payPeriod} onChange={(e) => setPayPeriod(e.target.value)} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} placeholder={focused || payPeriod ? '' : 'YYYY-MM'} />
+                <button style={styles.loadBtn} onClick={load} disabled={loading}>{loading ? 'Loading…' : 'Load Report'}</button>
+                <button style={styles.exportBtn} onClick={handleExport} disabled={!payPeriod}>Export Report</button>
               </div>
-              {data && (
-                <button style={styles.exportBtn} onClick={handleExport}>
-                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ marginRight: 6 }}>
-                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
-                  </svg>
-                  Export CSV
-                </button>
-              )}
             </div>
           </div>
 
@@ -165,7 +159,7 @@ const styles: Record<string, React.CSSProperties> = {
   pageTitle: { margin: '0 0 4px', fontSize: 26, fontWeight: 700, color: '#0f172a' },
   pageSubtitle: { margin: 0, fontSize: 13, color: '#64748b' },
   headingActions: { display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 10 },
-  periodRow: { display: 'flex', gap: 10 },
+  periodRow: { display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 8, boxShadow: '0 1px 3px rgba(15,23,42,.06)' },
   periodInput: { padding: '9px 14px', border: '1.5px solid #e2e8f0', borderRadius: 8, fontSize: 14, width: 168, background: '#fff', outline: 'none', color: '#0f172a' },
   loadBtn: { padding: '9px 20px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' },
   exportBtn: { display: 'flex', alignItems: 'center', padding: '9px 18px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' },

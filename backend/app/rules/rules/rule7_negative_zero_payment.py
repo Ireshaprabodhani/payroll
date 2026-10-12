@@ -13,7 +13,7 @@ def rule7_negative_zero_payment(extract: list) -> list:
             "Severity": "ERROR",
             "Description": (
                 f"Ordinary row for Employee {row.Employee_ID} has Pay_Amount of {row.Pay_Amount}, "
-                f"which is \u2264 0. This likely indicates a clock-punch error (Punch_Out before Punch_In)."
+                f"which is ≤ 0. This likely indicates a clock-punch error (Punch_Out before Punch_In)."
             ),
         }
         for row in extract

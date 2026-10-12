@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { getRole, getUsername, clearSession } from '@/lib/auth';
+import { getRole, getUsername, clearSession, openPowerBiSignOut } from '@/lib/auth';
 
 interface NavItem {
   label: string;
@@ -12,7 +12,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   {
-    label: 'Overview',
+    label: 'Dashboard',
     href: '/dashboard',
     allowedRoles: 'all',
     icon: (
@@ -36,7 +36,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     label: 'Anomalies',
     href: '/anomalies',
-    allowedRoles: ['Admin', 'Payroll Manager', 'Executive'],
+    allowedRoles: 'all',
     icon: (
       <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
@@ -47,7 +47,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     label: 'Department Analysis',
     href: '/department',
-    allowedRoles: ['Admin', 'Payroll Manager', 'Executive'],
+    allowedRoles: ['__hidden__'],
     icon: (
       <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
@@ -58,7 +58,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     label: 'Payment Summary',
     href: '/payment-summary',
-    allowedRoles: ['Admin', 'Payroll Manager', 'Executive'],
+    allowedRoles: ['__hidden__'],
     icon: (
       <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 100 7h5a3.5 3.5 0 110 7H6" />
@@ -73,6 +73,16 @@ const NAV_ITEMS: NavItem[] = [
       <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" />
         <line x1="6" y1="20" x2="6" y2="14" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Power BI Analytics',
+    href: '/powerbi',
+    allowedRoles: 'all',
+    icon: (
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path d="M21.21 15.89A10 10 0 118 2.83" /><path d="M22 12A10 10 0 0012 2v10z" />
       </svg>
     ),
   },
@@ -106,6 +116,7 @@ export default function Sidebar({ currentPath }: SidebarProps) {
 
   const handleSignOut = () => {
     clearSession();
+    openPowerBiSignOut();
     router.push('/login');
   };
 

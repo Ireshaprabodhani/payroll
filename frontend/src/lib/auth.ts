@@ -45,6 +45,14 @@ export function clearSession() {
   localStorage.removeItem(DEPT_KEY);
 }
 
+// Microsoft's sign-out page refuses to load inside a frame, so it opens in a popup.
+const POWERBI_SIGNOUT_URL = 'https://app.powerbi.com/Signout';
+
+export function openPowerBiSignOut() {
+  if (typeof window === 'undefined') return;
+  window.open(POWERBI_SIGNOUT_URL, 'powerbi-signout', 'width=520,height=640');
+}
+
 export function isAuthenticated(): boolean {
   return !!getToken();
 }
