@@ -134,9 +134,16 @@ export default function UploadPage() {
         </div>
 
         {/* Upload result */}
-        {uploadResult && (
+        {step === 'processing' && (
+          <div style={{ ...styles.card, ...styles.waitCard }}>
+            <h3 style={styles.resultTitle}>Please wait</h3>
+            <p>The file is uploaded. Payroll is still being calculated and the rules are running. Do not leave this page.</p>
+          </div>
+        )}
+
+        {step === 'done' && uploadResult && (
           <div style={{ ...styles.card, ...styles.successCard }}>
-            <h3 style={styles.resultTitle}>✓ File Uploaded</h3>
+            <h3 style={styles.resultTitle}>✓ Import complete</h3>
             <p><strong>{uploadResult.inserted}</strong> attendance rows imported for <strong>{uploadResult.importMonth}</strong>.</p>
           </div>
         )}
@@ -202,6 +209,7 @@ const styles: Record<string, React.CSSProperties> = {
   pageSubtitle: { margin: 0, fontSize: 13, color: '#64748b' },
   card: { background: '#fff', borderRadius: 12, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', padding: '28px 32px', marginBottom: 0, border: '1px solid #f1f5f9' },
   successCard: { border: '1.5px solid #16a34a', marginTop: 16 },
+  waitCard: { border: '1.5px solid #f59e0b', marginTop: 16, background: '#fffbeb' },
   form: { display: 'flex', flexDirection: 'column', gap: 20 },
   field: { display: 'flex', flexDirection: 'column', gap: 6 },
   label: { fontSize: 13, fontWeight: 600, color: '#374151' },

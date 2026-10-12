@@ -7,7 +7,7 @@ import { api } from '@/lib/api';
 import Sidebar from '@/components/Sidebar';
 import TopHeader from '@/components/TopHeader';
 
-const ALLOWED_ROLES = ['Admin', 'Payroll Manager', 'Executive'];
+const ALLOWED_ROLES = ['Admin', 'Payroll Manager', 'Finance', 'HR', 'End User'];
 
 interface FlaggedRecord {
   Flag_ID: number;
@@ -33,7 +33,8 @@ export default function AnomaliesPage() {
   const router = useRouter();
   const pathname = usePathname();
   const [authorized, setAuthorized] = useState(false);
-  const [payPeriod, setPayPeriod] = useState('2020-01');
+  const [payPeriod, setPayPeriod] = useState('');
+  const [focused, setFocused] = useState(false);
   const [data, setData] = useState<FlaggedRecord[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -42,12 +43,14 @@ export default function AnomaliesPage() {
     if (!isAuthenticated()) { router.push('/login'); return; }
     if (!ALLOWED_ROLES.includes(getRole() ?? '')) { router.push('/dashboard'); return; }
     setAuthorized(true);
+    api.get<{ payPeriod: string }>('/dashboard/latest-month')
+      .then((r) => setPayPeriod(r.payPeriod))
+      .catch(() => setPayPeriod('2020-01'));
   }, [router]);
 
   useEffect(() => {
-    if (authorized) { load(); }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authorized]);
+    if (authorized && payPeriod) load();
+  }, [authorized, payPeriod]);
 
   const load = async () => {
     setLoading(true);
@@ -62,13 +65,11 @@ export default function AnomaliesPage() {
     }
   };
 
-  const handleExport = () => {
-    if (!data) return;
-    downloadCsv(
-      ['Flag ID', 'Record ID', 'Flag Type', 'Severity', 'Description'],
-      data.map((r) => [r.Flag_ID, r.Record_ID, r.Flag_Type, r.Severity, r.Description]),
-      `anomalies-${payPeriod}.csv`,
-    );
+  const handleExport = async () => {
+    const rows = await api.get<Record<string, string>[]>(`/dashboard/export?payPeriod=${payPeriod}`);
+    if (!rows.length) return;
+    const headers = Object.keys(rows[0]);
+    downloadCsv(headers, rows.map((r) => headers.map((h) => r[h] ?? '')), `payroll-anomalies-${payPeriod}.csv`);
   };
 
   if (!authorized) return null;
@@ -89,17 +90,10 @@ export default function AnomaliesPage() {
             </div>
             <div style={styles.headingActions}>
               <div style={styles.periodRow}>
-                <input style={styles.periodInput} type="text" value={payPeriod} onChange={(e) => setPayPeriod(e.target.value)} placeholder="YYYY-MM" />
+                <input style={styles.periodInput} type="text" value={payPeriod} onChange={(e) => setPayPeriod(e.target.value)} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} placeholder={focused || payPeriod ? '' : 'YYYY-MM'} />
                 <button style={styles.loadBtn} onClick={load} disabled={loading}>{loading ? 'Loading…' : 'Load Flags'}</button>
+                <button style={styles.exportBtn} onClick={handleExport}>Export Report</button>
               </div>
-              {data && data.length > 0 && (
-                <button style={styles.exportBtn} onClick={handleExport}>
-                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ marginRight: 6 }}>
-                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
-                  </svg>
-                  Export CSV
-                </button>
-              )}
             </div>
           </div>
 

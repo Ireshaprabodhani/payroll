@@ -10,7 +10,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 
-const ALLOWED_ROLES = ['Admin', 'Payroll Manager', 'Executive'];
+const ALLOWED_ROLES = ['Admin', 'Payroll Manager', 'HR'];
 
 interface DashboardSummary {
   payPeriod: string;

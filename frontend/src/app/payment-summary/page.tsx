@@ -7,7 +7,7 @@ import { api } from '@/lib/api';
 import Sidebar from '@/components/Sidebar';
 import TopHeader from '@/components/TopHeader';
 
-const ALLOWED_ROLES = ['Admin', 'Payroll Manager', 'Executive'];
+const ALLOWED_ROLES = ['Admin', 'Payroll Manager', 'Finance'];
 
 interface PayrollExtractRow {
   Record_ID: number;

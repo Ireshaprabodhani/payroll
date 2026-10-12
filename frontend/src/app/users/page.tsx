@@ -13,12 +13,13 @@ interface UserRecord {
   Department: string | null;
 }
 
-const ROLE_OPTIONS = ['Admin', 'Payroll Manager', 'Executive', 'End User'];
+const ROLE_OPTIONS = ['Admin', 'Payroll Manager', 'Finance', 'HR', 'End User'];
 
 const ROLE_COLORS: Record<string, { bg: string; color: string }> = {
   Admin: { bg: '#ede9fe', color: '#7c3aed' },
   'Payroll Manager': { bg: '#dbeafe', color: '#2563eb' },
-  Executive: { bg: '#dcfce7', color: '#16a34a' },
+  Finance: { bg: '#dcfce7', color: '#16a34a' },
+  HR: { bg: '#ffedd5', color: '#c2410c' },
   'End User': { bg: '#f1f5f9', color: '#475569' },
 };
 
